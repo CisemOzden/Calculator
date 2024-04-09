@@ -164,11 +164,11 @@
 
     <Button
         android:id="@+id/btn_3"
-        android:layout_width="170dp"
+        android:layout_width="83dp"
         android:layout_height="89dp"
-        android:layout_marginStart="28dp"
-        android:layout_marginTop="640dp"
-        android:text="0"
+        android:layout_marginStart="204dp"
+        android:layout_marginTop="544dp"
+        android:text="3"
         android:textSize="24sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -186,11 +186,11 @@
 
     <Button
         android:id="@+id/btn_0"
-        android:layout_width="83dp"
+        android:layout_width="170dp"
         android:layout_height="89dp"
-        android:layout_marginStart="204dp"
-        android:layout_marginTop="544dp"
-        android:text="3"
+        android:layout_marginStart="28dp"
+        android:layout_marginTop="640dp"
+        android:text="0"
         android:textSize="24sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
