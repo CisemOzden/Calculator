@@ -27,6 +27,7 @@
         android:layout_marginTop="268dp"
         android:text="AC"
         android:textSize="24sp"
+        app:backgroundTint= "#34495E"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -38,6 +39,7 @@
         android:layout_marginTop="268dp"
         android:text="DEL"
         android:textSize="18sp"
+        app:backgroundTint="#34495E"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -49,6 +51,7 @@
         android:layout_marginTop="268dp"
         android:text="/"
         android:textSize="24sp"
+        app:backgroundTint="#5499C7"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -93,6 +96,7 @@
         android:layout_marginTop="360dp"
         android:text="x"
         android:textSize="24sp"
+        app:backgroundTint="#5499C7"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -137,6 +141,7 @@
         android:layout_marginTop="452dp"
         android:text="-"
         android:textSize="24sp"
+        app:backgroundTint="#5499C7"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -181,6 +186,7 @@
         android:layout_marginTop="544dp"
         android:text="+"
         android:textSize="24sp"
+        app:backgroundTint="#5499C7"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -214,6 +220,7 @@
         android:layout_marginTop="640dp"
         android:text="="
         android:textSize="24sp"
+        app:backgroundTint="#5499C7"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
