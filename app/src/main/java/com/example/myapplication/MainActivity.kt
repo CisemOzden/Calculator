@@ -8,20 +8,33 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
 import androidx.core.graphics.green
+import kotlin.math.ceil
+import kotlin.math.floor
 
 class MainActivity : AppCompatActivity() {
     enum class Operation {
         ADD, SUBTRACT, MULTIPLY, DIVIDE, EQUAL, NONE
     }
 
-    var selectedOperation = Operation.NONE
-    var opSelected = false
-    var equalDone = false
-    var addDone = false
-    var subDone = false
+    private var selectedOperation = Operation.NONE
+    private var opSelected = false
+    private var equalDone = false
+    private var addDone = false
+    private var subDone = false
+    private var mulDone = false
+    private var divDone = false
 
-    private var currentNumber = 0
-    private var currentSum = 0
+    private var isDecimal = false
+
+
+    private lateinit var addButton : Button
+    private lateinit var subButton : Button
+    private lateinit var mulButton : Button
+    private lateinit var divButton : Button
+
+
+    private var currentNumber = 0.0
+    private var currentSum = 0.0
     private var numberQueue = arrayOf<Int>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,12 +54,13 @@ class MainActivity : AppCompatActivity() {
         val btn8 : Button = findViewById(R.id.btn_8)
         val btn9 : Button = findViewById(R.id.btn_9)
         val btn0 : Button = findViewById(R.id.btn_0)
+        val commaButton : Button = findViewById(R.id.comma_btn)
         val acButton : Button = findViewById(R.id.ac_btn)
         val delButton : Button = findViewById(R.id.del_btn)
-        val addButton : Button = findViewById(R.id.add_btn)
-        val subButton : Button = findViewById(R.id.sub_btn)
-        val mulButton : Button = findViewById(R.id.mul_btn)
-        val divButton : Button = findViewById(R.id.div_btn)
+        addButton = findViewById(R.id.add_btn)
+        subButton = findViewById(R.id.sub_btn)
+        mulButton = findViewById(R.id.mul_btn)
+        divButton = findViewById(R.id.div_btn)
         val equalButton : Button = findViewById(R.id.equal_btn)
 
 
@@ -60,14 +74,16 @@ class MainActivity : AppCompatActivity() {
         btn8.setOnClickListener{writeNum(t, 8)}
         btn9.setOnClickListener{writeNum(t, 9)}
         btn0.setOnClickListener{writeNum(t, 0)}
+        commaButton.setOnClickListener {addComma(t)}
 
         acButton.setOnClickListener {
-            currentNumber = 0
-            currentSum = 0
+            currentNumber = 0.0
+            currentSum = 0.0
             //t.text = currentNumber.toString()
             updateScreen(t)
             selectedOperation = Operation.NONE
             opSelected = false
+            isDecimal = false
         }
 
         delButton.setOnClickListener {
@@ -79,48 +95,106 @@ class MainActivity : AppCompatActivity() {
         }
 
         addButton.setOnClickListener {
-            if(!addDone){
+            clearOperationClicks()
+            addButton.setBackgroundColor(Color.parseColor("#808B96"))
+            if(!addDone || equalDone){
+                if(selectedOperation != Operation.ADD) {
+                    currentSum = currentNumber
+                    opSelected = true
+                    selectedOperation = Operation.ADD
+                    equalDone = false
+                    return@setOnClickListener
+                }
                 opSelected = true
-                selectedOperation = Operation.ADD
-                addButton.setBackgroundColor(Color.parseColor("#808B96"))
                 currentSum += currentNumber
                 t.text = currentSum.toString()
                 addDone = true
+                //equalDone = true
             }
         }
 
+        subButton.setOnClickListener {
+            clearOperationClicks()
+            subButton.setBackgroundColor(Color.parseColor("#808B96"))
+            if(!subDone || equalDone) {
+                if(selectedOperation != Operation.SUBTRACT) {
+                    currentSum = currentNumber
+                    opSelected = true
+                    selectedOperation = Operation.SUBTRACT
+                    equalDone = false
+                    return@setOnClickListener
+                }
+                opSelected = true
+                currentSum -= currentNumber
+                t.text = currentSum.toString()
+                subDone = true
+                //equalDone = true
+            }
+        }
+
+        mulButton.setOnClickListener {
+            clearOperationClicks()
+            mulButton.setBackgroundColor(Color.parseColor("#808B96"))
+            if(!mulDone || equalDone){
+                if(selectedOperation != Operation.MULTIPLY) {
+                    currentSum = currentNumber
+                    opSelected = true
+                    selectedOperation = Operation.MULTIPLY
+                    equalDone = false
+                    return@setOnClickListener
+                }
+                opSelected = true
+                currentSum *= currentNumber
+                t.text = currentSum.toString()
+                mulDone = true
+                //equalDone = true
+            }
+        }
+
+        divButton.setOnClickListener {
+            clearOperationClicks()
+            divButton.setBackgroundColor(Color.parseColor("#808B96"))
+            if(!divDone || equalDone){
+                if(selectedOperation != Operation.DIVIDE) {
+                    currentSum = currentNumber
+                    opSelected = true
+                    selectedOperation = Operation.DIVIDE
+                    equalDone = false
+                    return@setOnClickListener
+                }
+                opSelected = true
+                currentSum /= currentNumber
+                t.text = currentSum.toString()
+                divDone = true
+                //equalDone = true
+            }
+        }
+
+
+
         equalButton.setOnClickListener {
+            clearOperationClicks()
             if(!equalDone) {
                 if(selectedOperation == Operation.ADD) {
                     currentSum += currentNumber
+                    addDone = true
                 } else if(selectedOperation == Operation.SUBTRACT) {
                     currentSum -= currentNumber
+                    subDone = true
+                } else if(selectedOperation == Operation.MULTIPLY) {
+                    currentSum *= currentNumber
+                    mulDone = true
+                } else if(selectedOperation == Operation.DIVIDE) {
+                    currentSum = "%.1f".format((currentSum / currentNumber)).toDouble()
+                    mulDone = true
                 }
+                selectedOperation = Operation.NONE
                 currentNumber = currentSum
                 updateScreen(t)
                 equalDone = true
             }
             //selectedOperation = Operation.EQUAL //?
             //opSelected = false //?
-        }
-
-        subButton.setOnClickListener {
-            if(!subDone){
-                if(selectedOperation == Operation.NONE) {
-                    currentSum = currentNumber
-                    opSelected = true
-                    selectedOperation = Operation.SUBTRACT
-                    subButton.setBackgroundColor(Color.parseColor("#808B96"))
-                    return@setOnClickListener
-                }
-
-                opSelected = true
-                //selectedOperation = Operation.SUBTRACT
-                //addButton.setBackgroundColor(Color.parseColor("#808B96"))
-                currentSum -= currentNumber
-                t.text = currentSum.toString()
-                subDone = true
-            }
         }
 
 
@@ -137,23 +211,60 @@ class MainActivity : AppCompatActivity() {
 
     private fun writeNum(t: TextView, num: Int) {
         //equalDone = false
+        clearOperationClicks()
         if(opSelected || equalDone) {
             opSelected = false
-            currentNumber = num
+            if(isDecimal){
+                currentNumber = "%.1f".format(((currentNumber*10 + num)/10)).toDouble()
+            } else {
+                currentNumber = num.toDouble()
+            }
             updateScreen(t)
         } else {
             if(currentNumber.toString().length == 9) return
 
-            currentNumber = currentNumber*10 + num
+            if(isDecimal){
+                currentNumber = "%.1f".format(((currentNumber*10 + num)/10)).toDouble()
+            } else {
+                currentNumber = currentNumber*10 + num
+            }
+
             //t.text = currentNumber.toString()
             updateScreen(t)
         }
         addDone = false
         subDone = false
+        mulDone = false
+        divDone = false
         equalDone = false
     }
 
+    private fun addComma(t: TextView) {
+        clearOperationClicks()
+        if (checkIfWholeNumber(currentNumber)) {
+            t.text = currentNumber.toInt().toString() + ','
+            isDecimal = true
+        }
+    }
+
     private fun updateScreen(t: TextView) {
-        t.text = currentNumber.toString()
+        if(checkIfWholeNumber(currentNumber)){
+            t.text = currentNumber.toInt().toString()
+        } else {
+            t.text = "%.1f".format(currentNumber)
+
+        }
+    }
+
+    private fun clearOperationClicks() {
+        addButton.setBackgroundColor(Color.parseColor("#5499C7"))
+        subButton.setBackgroundColor(Color.parseColor("#5499C7"))
+        mulButton.setBackgroundColor(Color.parseColor("#5499C7"))
+        divButton.setBackgroundColor(Color.parseColor("#5499C7"))
+
+    }
+
+    private fun checkIfWholeNumber(num: Double) : Boolean {
+        return ceil(num) == floor(num )
     }
 }
