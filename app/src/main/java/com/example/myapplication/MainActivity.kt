@@ -8,8 +8,10 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.TextView
 import androidx.core.graphics.green
+import java.math.BigDecimal
 import kotlin.math.ceil
 import kotlin.math.floor
+import kotlin.math.pow
 
 class MainActivity : AppCompatActivity() {
     enum class Operation {
@@ -36,6 +38,7 @@ class MainActivity : AppCompatActivity() {
     private var currentNumber = 0.0
     private var currentSum = 0.0
     private var numberQueue = arrayOf<Int>()
+    private var currentNumberStr = "0"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -87,14 +90,20 @@ class MainActivity : AppCompatActivity() {
         }
 
         delButton.setOnClickListener {
-            currentNumber /= 10
+            if(t.text.length == 1 || (t.text.length == 2 && t.text.startsWith('-'))){
+                currentNumber = 0.0
+            }else{
+                val strResult = t.text.dropLast(1).toString()
+                currentNumber = strResult.toDouble()
+            }
+
             currentSum = currentNumber
-            //t.text = currentNumber.toString()
             updateScreen(t)
 
         }
 
         addButton.setOnClickListener {
+            isDecimal = false
             clearOperationClicks()
             addButton.setBackgroundColor(Color.parseColor("#808B96"))
             if(!addDone || equalDone){
@@ -107,13 +116,17 @@ class MainActivity : AppCompatActivity() {
                 }
                 opSelected = true
                 currentSum += currentNumber
-                t.text = currentSum.toString()
+                currentNumber = currentSum
+                //t.text = currentSum.toString()
+                updateScreen(t)
                 addDone = true
                 //equalDone = true
             }
+
         }
 
         subButton.setOnClickListener {
+            isDecimal = false
             clearOperationClicks()
             subButton.setBackgroundColor(Color.parseColor("#808B96"))
             if(!subDone || equalDone) {
@@ -126,13 +139,16 @@ class MainActivity : AppCompatActivity() {
                 }
                 opSelected = true
                 currentSum -= currentNumber
-                t.text = currentSum.toString()
+                currentNumber = currentSum
+                //t.text = currentSum.toString()
+                updateScreen(t)
                 subDone = true
                 //equalDone = true
             }
         }
 
         mulButton.setOnClickListener {
+            isDecimal = false
             clearOperationClicks()
             mulButton.setBackgroundColor(Color.parseColor("#808B96"))
             if(!mulDone || equalDone){
@@ -145,13 +161,16 @@ class MainActivity : AppCompatActivity() {
                 }
                 opSelected = true
                 currentSum *= currentNumber
-                t.text = currentSum.toString()
+                currentNumber = currentSum
+                //t.text = currentSum.toString()
+                updateScreen(t)
                 mulDone = true
                 //equalDone = true
             }
         }
 
         divButton.setOnClickListener {
+            isDecimal = false
             clearOperationClicks()
             divButton.setBackgroundColor(Color.parseColor("#808B96"))
             if(!divDone || equalDone){
@@ -163,8 +182,14 @@ class MainActivity : AppCompatActivity() {
                     return@setOnClickListener
                 }
                 opSelected = true
+                if(currentNumber == 0.0){
+                    t.text = "Error"
+                    return@setOnClickListener
+                }
                 currentSum /= currentNumber
-                t.text = currentSum.toString()
+                currentNumber = currentSum
+                //t.text = currentSum.toString()
+                updateScreen(t)
                 divDone = true
                 //equalDone = true
             }
@@ -173,6 +198,7 @@ class MainActivity : AppCompatActivity() {
 
 
         equalButton.setOnClickListener {
+            isDecimal = false
             clearOperationClicks()
             if(!equalDone) {
                 if(selectedOperation == Operation.ADD) {
@@ -185,7 +211,14 @@ class MainActivity : AppCompatActivity() {
                     currentSum *= currentNumber
                     mulDone = true
                 } else if(selectedOperation == Operation.DIVIDE) {
-                    currentSum = "%.1f".format((currentSum / currentNumber)).toDouble()
+                    if(currentNumber == 0.0){
+                        t.text = "Error"
+                        currentSum = 0.0
+                        mulDone = true
+                        return@setOnClickListener
+                    }
+                    //currentSum = "%.1f".format((currentSum / currentNumber)).toDouble()
+                    currentSum = (currentSum / currentNumber).toDouble()
                     mulDone = true
                 }
                 selectedOperation = Operation.NONE
@@ -215,22 +248,65 @@ class MainActivity : AppCompatActivity() {
         if(opSelected || equalDone) {
             opSelected = false
             if(isDecimal){
-                currentNumber = "%.1f".format(((currentNumber*10 + num)/10)).toDouble()
+                if(t.text.endsWith('.')) {
+                    currentNumber = "%.1f".format(((currentNumber*10 + num)/10)).toDouble()
+                }else {
+                    currentNumber = currentNumber.toString().toDouble()
+                    val digitCount = numOfDecimalDigits(currentNumber)
+                    val a = currentNumber* 10.0.pow(digitCount.toDouble() + 1)
+                    val newNumber = (a + num)/ (10.0.pow(
+                        digitCount.toDouble() + 1)
+                            )
+                    currentNumber = newNumber
+                }
+                //currentNumber = "%.1f".format(((currentNumber*10 + num)/10)).toDouble()
             } else {
                 currentNumber = num.toDouble()
             }
-            updateScreen(t)
+            if(checkIfWholeNumber(currentNumber)){
+                t.text = currentNumber.toInt().toString()
+            }else {
+                val numOfDecimals = numOfDecimalDigits(currentNumber)
+                val formattedNum = "%.${numOfDecimals}f".format(currentNumber)
+                t.text = formattedNum
+            }
+
         } else {
-            if(currentNumber.toString().length == 9) return
+            if(t.text.length == 9) return
 
             if(isDecimal){
-                currentNumber = "%.1f".format(((currentNumber*10 + num)/10)).toDouble()
-            } else {
+                if(t.text.endsWith('.')) {
+                    if(num == 0){
+                        t.text = currentNumber.toString()
+                        return
+                    }
+                    currentNumber = "%.1f".format(((currentNumber*10 + num)/10)).toDouble()
+                }else {
+                    if(num == 0){
+                        t.text = t.text.toString() + '0'
+                        currentNumber = t.text.toString().toDouble() //does not work!!
+                        return
+                    }
+                    val digitCount = numOfDecimalDigits(currentNumber)
+                    val a = (currentNumber* 10.0.pow(digitCount.toDouble() + 1)).toInt()
+                    val newNumber = (a + num)/ (10.0.pow(
+                        digitCount.toDouble() + 1)
+                    )
+                    currentNumber = newNumber
+                }
+                //currentNumber = "%.1f".format(((currentNumber*10 + num)/10)).toDouble()
+            }else {
                 currentNumber = currentNumber*10 + num
             }
 
-            //t.text = currentNumber.toString()
-            updateScreen(t)
+            if(checkIfWholeNumber(currentNumber)){
+                t.text = currentNumber.toInt().toString()
+            }else {
+                val numOfDecimals = numOfDecimalDigits(currentNumber)
+                val formattedNum = "%.${numOfDecimals}f".format(currentNumber)
+                t.text = formattedNum
+            }
+            //updateScreen(t)
         }
         addDone = false
         subDone = false
@@ -242,7 +318,7 @@ class MainActivity : AppCompatActivity() {
     private fun addComma(t: TextView) {
         clearOperationClicks()
         if (checkIfWholeNumber(currentNumber)) {
-            t.text = currentNumber.toInt().toString() + ','
+            t.text = currentNumber.toInt().toString() + '.'
             isDecimal = true
         }
     }
@@ -251,8 +327,18 @@ class MainActivity : AppCompatActivity() {
         if(checkIfWholeNumber(currentNumber)){
             t.text = currentNumber.toInt().toString()
         } else {
-            t.text = "%.1f".format(currentNumber)
+            currentNumber = currentNumber.toString().trimEnd('0').toDouble()
+            val len = currentNumber.toString().length
+            if(len >= 9) {
+                val dec = numOfDecimalDigits(currentNumber)
+                val x = 9 - len + dec
+                t.text = "%.${x}f".format(currentNumber).trimEnd('0').toString()
+            } else {
+                t.text = currentNumber.toString()
+            }
 
+            //t.text = "%.1f".format(currentNumber)
+            //t.text = currentNumber.toString()
         }
     }
 
@@ -267,4 +353,15 @@ class MainActivity : AppCompatActivity() {
     private fun checkIfWholeNumber(num: Double) : Boolean {
         return ceil(num) == floor(num )
     }
+
+    private fun numOfDecimalDigits(num: Double): Int {
+        val str = num.toString()
+        val decimalIndex = str.indexOf('.')
+        return if (decimalIndex == -1) {
+            0
+        } else {
+            str.length - decimalIndex - 1
+        }
+    }
+
 }
