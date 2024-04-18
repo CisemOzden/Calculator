@@ -34,17 +34,12 @@ class MainActivity : AppCompatActivity() {
     private lateinit var mulButton : Button
     private lateinit var divButton : Button
 
-
     private var currentNumber = 0.0
     private var currentSum = 0.0
-    private var numberQueue = arrayOf<Int>()
-    private var currentNumberStr = "0"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        var result = 0
 
         var t : TextView = findViewById(R.id.result)
         val btn1 : Button = findViewById(R.id.btn_1)
@@ -65,7 +60,6 @@ class MainActivity : AppCompatActivity() {
         mulButton = findViewById(R.id.mul_btn)
         divButton = findViewById(R.id.div_btn)
         val equalButton : Button = findViewById(R.id.equal_btn)
-
 
         btn1.setOnClickListener{writeNum(t, 1)}
         btn2.setOnClickListener{writeNum(t, 2)}
@@ -243,7 +237,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun writeNum(t: TextView, num: Int) {
-        //equalDone = false
         clearOperationClicks()
         if(opSelected || equalDone) {
             opSelected = false
@@ -259,17 +252,10 @@ class MainActivity : AppCompatActivity() {
                             )
                     currentNumber = newNumber
                 }
-                //currentNumber = "%.1f".format(((currentNumber*10 + num)/10)).toDouble()
             } else {
                 currentNumber = num.toDouble()
             }
-            if(checkIfWholeNumber(currentNumber)){
-                t.text = currentNumber.toInt().toString()
-            }else {
-                val numOfDecimals = numOfDecimalDigits(currentNumber)
-                val formattedNum = "%.${numOfDecimals}f".format(currentNumber)
-                t.text = formattedNum
-            }
+            formatFinalResult(t)
 
         } else {
             if(t.text.length == 9) return
@@ -280,39 +266,36 @@ class MainActivity : AppCompatActivity() {
                         t.text = currentNumber.toString()
                         return
                     }
-                    currentNumber = "%.1f".format(((currentNumber*10 + num)/10)).toDouble()
+                    t.text = t.text.toString() + num.toString()
+                    currentNumber = t.text.toString().toDouble()
                 }else {
                     if(num == 0){
                         t.text = t.text.toString() + '0'
-                        currentNumber = t.text.toString().toDouble() //does not work!!
                         return
                     }
-                    val digitCount = numOfDecimalDigits(currentNumber)
-                    val a = (currentNumber* 10.0.pow(digitCount.toDouble() + 1)).toInt()
-                    val newNumber = (a + num)/ (10.0.pow(
-                        digitCount.toDouble() + 1)
-                    )
-                    currentNumber = newNumber
+                    t.text = t.text.toString() + num.toString()
+                    currentNumber = t.text.toString().toDouble()
                 }
-                //currentNumber = "%.1f".format(((currentNumber*10 + num)/10)).toDouble()
             }else {
                 currentNumber = currentNumber*10 + num
             }
-
-            if(checkIfWholeNumber(currentNumber)){
-                t.text = currentNumber.toInt().toString()
-            }else {
-                val numOfDecimals = numOfDecimalDigits(currentNumber)
-                val formattedNum = "%.${numOfDecimals}f".format(currentNumber)
-                t.text = formattedNum
-            }
-            //updateScreen(t)
+            formatFinalResult(t)
         }
         addDone = false
         subDone = false
         mulDone = false
         divDone = false
         equalDone = false
+    }
+
+    private fun formatFinalResult(t: TextView){
+        if(checkIfWholeNumber(currentNumber)){
+            t.text = currentNumber.toInt().toString()
+        }else {
+            val numOfDecimals = numOfDecimalDigits(currentNumber)
+            val formattedNum = "%.${numOfDecimals}f".format(currentNumber)
+            t.text = formattedNum
+        }
     }
 
     private fun addComma(t: TextView) {
@@ -332,13 +315,11 @@ class MainActivity : AppCompatActivity() {
             if(len >= 9) {
                 val dec = numOfDecimalDigits(currentNumber)
                 val x = 9 - len + dec
+                t.text = currentNumber.toString()
                 t.text = "%.${x}f".format(currentNumber).trimEnd('0').toString()
             } else {
                 t.text = currentNumber.toString()
             }
-
-            //t.text = "%.1f".format(currentNumber)
-            //t.text = currentNumber.toString()
         }
     }
 
