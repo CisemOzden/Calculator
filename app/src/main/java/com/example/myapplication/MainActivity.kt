@@ -15,7 +15,7 @@ import kotlin.math.pow
 
 class MainActivity : AppCompatActivity() {
     enum class Operation {
-        ADD, SUBTRACT, MULTIPLY, DIVIDE, EQUAL, NONE
+        ADD, SUBTRACT, MULTIPLY, DIVIDE, NONE
     }
 
     private var selectedOperation = Operation.NONE
@@ -76,8 +76,8 @@ class MainActivity : AppCompatActivity() {
         acButton.setOnClickListener {
             currentNumber = 0.0
             currentSum = 0.0
-            //t.text = currentNumber.toString()
             updateScreen(t)
+            clearOperationClicks()
             selectedOperation = Operation.NONE
             opSelected = false
             isDecimal = false
@@ -90,10 +90,8 @@ class MainActivity : AppCompatActivity() {
                 val strResult = t.text.dropLast(1).toString()
                 currentNumber = strResult.toDouble()
             }
-
             currentSum = currentNumber
             updateScreen(t)
-
         }
 
         addButton.setOnClickListener {
@@ -101,22 +99,30 @@ class MainActivity : AppCompatActivity() {
             clearOperationClicks()
             addButton.setBackgroundColor(Color.parseColor("#808B96"))
             if(!addDone || equalDone){
-                if(selectedOperation != Operation.ADD) {
+                //complete current operation if there is one
+                if(selectedOperation == Operation.SUBTRACT){
+                    performSubtraction(t)
+                    prepareForOperation(Operation.ADD)
+                } else if(selectedOperation == Operation.DIVIDE) {
+                    if(currentNumber == 0.0){
+                        t.text = "Error"
+                        currentSum = 0.0
+                        return@setOnClickListener
+                    }
+                    performDivision(t)
+                    prepareForOperation(Operation.ADD)
+                } else if(selectedOperation == Operation.MULTIPLY) {
+                    performMultiplication(t)
+                    prepareForOperation(Operation.ADD)
+                } else if(selectedOperation == Operation.NONE) {
                     currentSum = currentNumber
                     opSelected = true
                     selectedOperation = Operation.ADD
                     equalDone = false
-                    return@setOnClickListener
+                } else {
+                    performAddition(t)
                 }
-                opSelected = true
-                currentSum += currentNumber
-                currentNumber = currentSum
-                //t.text = currentSum.toString()
-                updateScreen(t)
-                addDone = true
-                //equalDone = true
             }
-
         }
 
         subButton.setOnClickListener {
@@ -124,20 +130,29 @@ class MainActivity : AppCompatActivity() {
             clearOperationClicks()
             subButton.setBackgroundColor(Color.parseColor("#808B96"))
             if(!subDone || equalDone) {
-                if(selectedOperation != Operation.SUBTRACT) {
+                //complete current operation if there is one
+                if(selectedOperation == Operation.ADD){
+                    performAddition(t)
+                    prepareForOperation(Operation.SUBTRACT)
+                } else if(selectedOperation == Operation.DIVIDE) {
+                    if(currentNumber == 0.0){
+                        t.text = "Error"
+                        currentSum = 0.0
+                        return@setOnClickListener
+                    }
+                    performDivision(t)
+                    prepareForOperation(Operation.SUBTRACT)
+                } else if(selectedOperation == Operation.MULTIPLY) {
+                    performMultiplication(t)
+                    prepareForOperation(Operation.SUBTRACT)
+                } else if(selectedOperation == Operation.NONE) {
                     currentSum = currentNumber
                     opSelected = true
                     selectedOperation = Operation.SUBTRACT
                     equalDone = false
-                    return@setOnClickListener
+                } else {
+                    performSubtraction(t)
                 }
-                opSelected = true
-                currentSum -= currentNumber
-                currentNumber = currentSum
-                //t.text = currentSum.toString()
-                updateScreen(t)
-                subDone = true
-                //equalDone = true
             }
         }
 
@@ -146,20 +161,29 @@ class MainActivity : AppCompatActivity() {
             clearOperationClicks()
             mulButton.setBackgroundColor(Color.parseColor("#808B96"))
             if(!mulDone || equalDone){
-                if(selectedOperation != Operation.MULTIPLY) {
+                //complete current operation if there is one
+                if(selectedOperation == Operation.ADD){
+                    performAddition(t)
+                    prepareForOperation(Operation.MULTIPLY)
+                } else if(selectedOperation == Operation.DIVIDE) {
+                    if(currentNumber == 0.0){
+                        t.text = "Error"
+                        currentSum = 0.0
+                        return@setOnClickListener
+                    }
+                    performDivision(t)
+                    prepareForOperation(Operation.MULTIPLY)
+                } else if(selectedOperation == Operation.SUBTRACT) {
+                    performSubtraction(t)
+                    prepareForOperation(Operation.MULTIPLY)
+                } else if(selectedOperation == Operation.NONE) {
                     currentSum = currentNumber
                     opSelected = true
                     selectedOperation = Operation.MULTIPLY
                     equalDone = false
-                    return@setOnClickListener
+                } else {
+                    performMultiplication(t)
                 }
-                opSelected = true
-                currentSum *= currentNumber
-                currentNumber = currentSum
-                //t.text = currentSum.toString()
-                updateScreen(t)
-                mulDone = true
-                //equalDone = true
             }
         }
 
@@ -168,28 +192,31 @@ class MainActivity : AppCompatActivity() {
             clearOperationClicks()
             divButton.setBackgroundColor(Color.parseColor("#808B96"))
             if(!divDone || equalDone){
-                if(selectedOperation != Operation.DIVIDE) {
+                //complete current operation if there is one
+                if(selectedOperation == Operation.ADD){
+                    performAddition(t)
+                    prepareForOperation(Operation.DIVIDE)
+                } else if(selectedOperation == Operation.MULTIPLY) {
+                    performMultiplication(t)
+                    prepareForOperation(Operation.DIVIDE)
+                } else if(selectedOperation == Operation.SUBTRACT) {
+                    performSubtraction(t)
+                    prepareForOperation(Operation.DIVIDE)
+                } else if(selectedOperation == Operation.NONE) {
                     currentSum = currentNumber
                     opSelected = true
                     selectedOperation = Operation.DIVIDE
                     equalDone = false
-                    return@setOnClickListener
+                } else {
+                    if(currentNumber == 0.0){
+                        t.text = "Error"
+                        currentSum = 0.0
+                        return@setOnClickListener
+                    }
+                    performDivision(t)
                 }
-                opSelected = true
-                if(currentNumber == 0.0){
-                    t.text = "Error"
-                    return@setOnClickListener
-                }
-                currentSum /= currentNumber
-                currentNumber = currentSum
-                //t.text = currentSum.toString()
-                updateScreen(t)
-                divDone = true
-                //equalDone = true
             }
         }
-
-
 
         equalButton.setOnClickListener {
             isDecimal = false
@@ -208,33 +235,20 @@ class MainActivity : AppCompatActivity() {
                     if(currentNumber == 0.0){
                         t.text = "Error"
                         currentSum = 0.0
-                        mulDone = true
+                        divDone = true
                         return@setOnClickListener
                     }
-                    //currentSum = "%.1f".format((currentSum / currentNumber)).toDouble()
                     currentSum = (currentSum / currentNumber).toDouble()
-                    mulDone = true
+                    divDone = true
                 }
                 selectedOperation = Operation.NONE
                 currentNumber = currentSum
                 updateScreen(t)
                 equalDone = true
             }
-            //selectedOperation = Operation.EQUAL //?
-            //opSelected = false //?
         }
-
-
-
-
-
-
-
-
-
-
-
     }
+
 
     private fun writeNum(t: TextView, num: Int) {
         clearOperationClicks()
@@ -256,10 +270,8 @@ class MainActivity : AppCompatActivity() {
                 currentNumber = num.toDouble()
             }
             formatFinalResult(t)
-
         } else {
             if(t.text.length == 9) return
-
             if(isDecimal){
                 if(t.text.endsWith('.')) {
                     if(num == 0){
@@ -328,7 +340,6 @@ class MainActivity : AppCompatActivity() {
         subButton.setBackgroundColor(Color.parseColor("#5499C7"))
         mulButton.setBackgroundColor(Color.parseColor("#5499C7"))
         divButton.setBackgroundColor(Color.parseColor("#5499C7"))
-
     }
 
     private fun checkIfWholeNumber(num: Double) : Boolean {
@@ -338,11 +349,49 @@ class MainActivity : AppCompatActivity() {
     private fun numOfDecimalDigits(num: Double): Int {
         val str = num.toString()
         val decimalIndex = str.indexOf('.')
-        return if (decimalIndex == -1) {
+        return if(decimalIndex == -1){
             0
         } else {
             str.length - decimalIndex - 1
         }
+    }
+
+    private fun prepareForOperation(operation: Operation){
+        currentSum = currentNumber
+        opSelected = true
+        selectedOperation = operation
+        equalDone = false
+    }
+
+    private fun performAddition(t: TextView){
+        opSelected = true
+        currentSum += currentNumber
+        currentNumber = currentSum
+        updateScreen(t)
+        addDone = true
+    }
+    private fun performSubtraction(t: TextView){
+        opSelected = true
+        currentSum -= currentNumber
+        currentNumber = currentSum
+        updateScreen(t)
+        subDone = true
+    }
+
+    private fun performMultiplication(t: TextView){
+        opSelected = true
+        currentSum *= currentNumber
+        currentNumber = currentSum
+        updateScreen(t)
+        mulDone = true
+    }
+
+    private fun performDivision(t: TextView){
+        opSelected = true
+        currentSum /= currentNumber
+        currentNumber = currentSum
+        updateScreen(t)
+        divDone = true
     }
 
 }
